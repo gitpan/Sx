@@ -2,6 +2,7 @@ package Sx;
 
 require Exporter;
 require DynaLoader;
+
 @ISA = (Exporter, DynaLoader);
 @EXPORT = qw(
     OpenDisplay ShowDisplay MainLoop SyncDisplay
@@ -31,9 +32,9 @@ require DynaLoader;
     GetStandardColors GetNamedColor GetRGBColor FreeStandardColors
     GetPrivateColor SetPrivateColor FreePrivateColor GetAllColors
     SetColorMap SetMyColorMap FreeAllColors
-    XtDestroyWidget SetWidgetInt SetWidgetDat GetWidgetInt GetWidgetDat
+    DestroyWidget SetWidgetInt SetWidgetDat GetWidgetInt GetWidgetDat
     AppendText InsertText ReplaceText GetSelection GetTextSelectionPos
-    UnsetTextSelection SetTextSelection
+    UnsetTextSelection SetTextSelection WarpPointer
     AddTranslation
     SAME_DISPLAY ORIGINAL_WINDOW NullSx TOP_LEVEL_FORM
     WHITE BLACK RED GREEN BLUE YELLOW NONEXCLUSIVE_WINDOW EXCLUSIVE_WINDOW 
@@ -42,17 +43,18 @@ require DynaLoader;
     GREY_SCALE_1 GREY_SCALE_2 RAINBOW_1 RAINBOW_2
 );
 
-bootstrap Sx;
-
-$SxVersion = "2.2";
-$SAME_DISPLAY = undef;
-$ORIGINAL_WINDOW = undef;
-$NullSx = undef;
-$TOP_LEVEL_FORM = undef;
-
+$SxVersion = "2.3";
 $VERSION = $SxVersion;		# for use by Exporter.pm
 
-sub AddTranslation {
+bootstrap Sx;
+
+sub SAME_DISPLAY() { undef }
+sub ORIGINAL_WINDOW() { undef }
+sub NullSx() { undef }
+sub TOP_LEVEL_FORM() { undef }
+
+
+sub AddTranslation ($%) {
   my($widget,%trans_list) = @_;
   my($event,$callb,$trtable);
 
@@ -89,6 +91,25 @@ $GREY_SCALE_1 = 0;
 $GREY_SCALE_2 = 1;
 $RAINBOW_1 = 2;
 $RAINBOW_2 = 3;
+
+sub NONEXCLUSIVE_WINDOW() { 0 }
+sub EXCLUSIVE_WINDOW() { 1 }
+sub SANE_XOR() { 127 }
+sub NO_CARE() { 0 }
+sub PLACE_RIGHT() { 1 }
+sub PLACE_UNDER() { 2 }
+sub LEFT_EDGE() { 0 }
+sub RIGHT_EDGE() { 1 }
+sub TOP_EDGE() { 2 }
+sub BOTTOM_EDGE() { 3 }
+sub ATTACH_LEFT() { 0 }
+sub ATTACH_RIGHT() { 1 }
+sub ATTACH_TOP() { 2 }
+sub ATTACH_BOTTOM() { 3 }
+sub GREY_SCALE_1() { 0 }
+sub GREY_SCALE_2() { 1 }
+sub RAINBOW_1() { 2 }
+sub RAINBOW_2() { 3 }
 
 1;
 

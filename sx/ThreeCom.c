@@ -653,12 +653,13 @@ static void Resize(w)
     (*threeComWidgetClass->core_class.superclass->core_class.resize)(w);
 }
 
-Widget Make3Com(txt, func1, func2, func3, data)
+Widget Make3Com(txt, func1, func2, func3, data, name)
 char *txt;
 ButtonCB func1;
 ButtonCB func2;
 ButtonCB func3;
 void *data;
+char *name;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
@@ -674,7 +675,7 @@ void *data;
    }
 
 
-  button = XtCreateManagedWidget("ThreeCom", threeComWidgetClass,
+  button = XtCreateManagedWidget(name, threeComWidgetClass,
 				 lsx_curwin->form_widget,wargs,n);
   if (button == NULL)
     return NULL;

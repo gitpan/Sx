@@ -23,17 +23,17 @@ extern WindowState *lsx_curwin;  /* global handle for the current window. */
  * Toggle Button Creation/Manipulation routines.
  */
 
-Widget MakeToggle(txt, state, w, func, d)
+Widget MakeToggle(txt, state, w, func, d, name)
 char *txt;
 int state;
 Widget w;
 ButtonCB func;
 void *d;
+char *name;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
   Widget toggle;
-  char   *name = "toggle";
 
   if (lsx_curwin->toplevel == NULL && OpenDisplay(0, NULL) == 0)
     return NULL;
@@ -56,7 +56,6 @@ void *d;
        return NULL;
 
      XtSetArg(wargs[n], XtNradioGroup, w);                n++;
-     name = "radio_group";
    }
 
   toggle = XtCreateManagedWidget(name, toggleWidgetClass,

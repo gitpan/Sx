@@ -174,11 +174,12 @@ float where, max, size_shown;
  * Scrollbar Creation/Manipulation routines.
  *
  */
-static Widget MakeScrollbar(length, scroll_func, data,orientation)
+static Widget MakeScrollbar(length, scroll_func, data,orientation,name)
 int length;
 ScrollCB scroll_func;
 void *data;
 int orientation;
+char *name;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
@@ -202,7 +203,7 @@ int orientation;
   XtSetArg(wargs[n], XtNorientation, orientation);   n++; 
   XtSetArg(wargs[n], XtNlength,      length);        n++; 
 
-  scroll_widget = XtCreateManagedWidget("scrollbar", scrollbarWidgetClass,
+  scroll_widget = XtCreateManagedWidget(name, scrollbarWidgetClass,
 					lsx_curwin->form_widget,wargs,n);
 
   if (scroll_widget == NULL)
@@ -222,22 +223,23 @@ int orientation;
 }
 
 
-Widget MakeVertScrollbar(height, scroll_func, data)
+Widget MakeVertScrollbar(height, scroll_func, data, name)
 int height;
 ScrollCB scroll_func;
 void *data;
+char *name;
 {
-  return MakeScrollbar(height, scroll_func, data, XtorientVertical);
+  return MakeScrollbar(height, scroll_func, data, XtorientVertical, name);
 }
 
 
-Widget MakeHorizScrollbar(length, scroll_func, data)
+Widget MakeHorizScrollbar(length, scroll_func, data, name)
 int length;
 ScrollCB scroll_func;
 void *data;
+char *name;
 {
-  return MakeScrollbar(length, scroll_func, data,
-		       XtorientHorizontal);
+  return MakeScrollbar(length, scroll_func, data, XtorientHorizontal, name);
 }
 
 

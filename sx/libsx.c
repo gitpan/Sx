@@ -544,12 +544,13 @@ int exclusive;
 
 
 
-Widget MakeForm(parent, where1, from1, where2, from2)
+Widget MakeForm(parent, where1, from1, where2, from2, name)
 Widget parent;
 int where1;
 Widget from1;
 int where2;
 Widget from2;
+char *name;
 {
   Widget form;
   Arg wargs[3];
@@ -567,7 +568,7 @@ Widget from2;
 /*
   XtSetArg(wargs[2], "resizable", 1);
 */
-  form = XtCreateManagedWidget("form", formWidgetClass,
+  form = XtCreateManagedWidget(name, formWidgetClass,
 			       parent, wargs,2);
   if (form == NULL)
     return NULL;

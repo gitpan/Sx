@@ -24,10 +24,11 @@ extern WindowState *lsx_curwin;   /* global handle for the current window */
  * Command Button Creation routine.
  */
 
-Widget MakeButton(txt, func, data)
+Widget MakeButton(txt, func, data, name)
 char *txt;
 ButtonCB func;
 void *data;
+char *name;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
@@ -43,7 +44,7 @@ void *data;
    }
 
 
-  button = XtCreateManagedWidget("button", commandWidgetClass,
+  button = XtCreateManagedWidget(name, commandWidgetClass,
 				 lsx_curwin->form_widget,wargs,n);
   if (button == NULL)
     return NULL;
@@ -60,8 +61,9 @@ void *data;
  * Text Label Creation.
  */
 
-Widget MakeLabel(txt)
+Widget MakeLabel(txt,name)
 char *txt;
+char *name;
 {
   int    n = 0;
   static int    bg_color = -1;
@@ -77,7 +79,7 @@ char *txt;
      XtSetArg(wargs[n], XtNlabel, txt);	 	      n++;  
    }
 
-  label = XtCreateManagedWidget("label", labelWidgetClass,
+  label = XtCreateManagedWidget(name, labelWidgetClass,
 				lsx_curwin->form_widget,wargs,n);
   if (label == NULL)
     return NULL;

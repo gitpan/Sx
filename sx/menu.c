@@ -23,8 +23,9 @@ extern WindowState *lsx_curwin;  /* global handle to the current window */
 /*
  * Menu functions.
  */
-Widget MakeMenu(name)
+Widget MakeMenu(name, mname)
 char *name;
+char *mname;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
@@ -49,7 +50,7 @@ char *name;
    * the menu button for creation of the actual menu items.
    *
    */
-  button = XtCreateManagedWidget("menuButton", menuButtonWidgetClass,
+  button = XtCreateManagedWidget(mname, menuButtonWidgetClass,
 				 lsx_curwin->form_widget,  wargs, n); 
 
   if (button)
@@ -66,11 +67,12 @@ char *name;
 }
 
 
-Widget MakeMenuItem(parent, name, func, arg)
+Widget MakeMenuItem(parent, name, func, arg, iname)
 Widget parent;
 char *name;
 ButtonCB func;
 void *arg;
+char *iname;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
@@ -95,7 +97,7 @@ void *arg;
   XtSetArg(wargs[n], XtNleftMargin, check_mark_width);    n++;  
 
 
-  item = XtCreateManagedWidget("menu_item", smeBSBObjectClass, menu, wargs, n);
+  item = XtCreateManagedWidget(iname, smeBSBObjectClass, menu, wargs, n);
   if (item == NULL)
     return NULL;
 

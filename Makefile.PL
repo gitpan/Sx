@@ -7,7 +7,7 @@ WriteMakefile(
 #	       'LIBS' => '-lXaw -lXmu -lXext -lXt -lX11',
 	       'NAME' => 'Sx',
 	       'DISTNAME' => 'Sx',
-	       'VERSION' => '2.2',
+	       'VERSION' => '2.3',
 # uncomment and update the following line if X11 include files are not
 # in /usr/include/X11
 	       'INC' => '-DXAW3D -I/local/X11R6/include',

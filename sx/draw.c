@@ -46,10 +46,11 @@ static Display  *display=NULL;
  * Drawing Area Creation Routine.
  */
 
-Widget MakeDrawArea(width, height, redisplay, data)
+Widget MakeDrawArea(width, height, redisplay, data, name)
 int width, height;
 RedisplayCB redisplay;
 void *data;
+char *name;
 {
   int    n = 0;
   Arg    wargs[5];		/* Used to set widget resources */
@@ -67,7 +68,7 @@ void *data;
   XtSetArg(wargs[n], XtNwidth, width);		n++; 
   XtSetArg(wargs[n], XtNheight,height);		n++; 
 
-  draw_widget = XtCreateManagedWidget("drawing_area", drawingAreaWidgetClass,
+  draw_widget = XtCreateManagedWidget(name, drawingAreaWidgetClass,
 				      lsx_curwin->form_widget,wargs,n);
 
   if (draw_widget == NULL)

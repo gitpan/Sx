@@ -17,6 +17,8 @@ typedef char **String_Array;
 typedef short *RGB_Array;
 typedef unsigned char *Byte_Array;
 
+char *		_XawTextGetText();
+
 char *		GetWidgetDat();
 Widget		Make3Com(), MakeThreeList();
 String_Array	XS_unpack_String_Array();
@@ -29,8 +31,7 @@ struct Edata
     Widget w;
     SV *data;
     SV *mysv;
-    char *fun[MAXARGS];
-    CV *cvcache[MAXARGS];
+    CV *fun[MAXARGS];
 #define CB_GENFUN 0
 #define CB_BU_IDX 1
 #define CB_BD_IDX 2
@@ -46,6 +47,8 @@ struct Edata
 #define CB_EXPFUN 2
 };
 
+typedef struct Edata *Rwidget;
+
 String_Array XS_unpack_String_Array(ax, items)
 int ax;
 int items;
@@ -53,7 +56,7 @@ int items;
     char **argv;
     int i;
     
-    Newz(666, argv, items+1, char *);
+    New(666, argv, items+1, char *);
     for (i = 0; i < items; i++)
       argv[i] = SvPV(ST(i), na);
     argv[i] = NULL;
@@ -64,39 +67,35 @@ char *NewString(s)
 char *s; {
   char *tmp;
 
-  Newz(666,tmp,strlen(s)+1,char);
+  New(666,tmp,strlen(s)+1,char);
   strcpy(tmp,s);
   return tmp;
 }
 
-void do_callback(callback, index)
-struct Edata *callback;
-int index;
-{
-    register CV *cv;
-    GV *gv = Nullgv;
-    GV *gvjunk;
-    HV *hvjunk;
-    BINOP myop;
-    
-    if (!callback->fun[index] || *(callback->fun[index]) == '\0')
-	return;
- 
-    /* If the CV has not been cached yet, work it out now */
-    cv = callback->cvcache[index];
-    if (!cv)
-    {
-      gv = gv_fetchpv(callback->fun[index], FALSE,SVt_PVCV);
+CV *NewCallback(cb)
+SV *cb; {
+  register CV *cv;
+  GV *gv = Nullgv;
+  GV *gvjunk;
+  HV *hvjunk;
 
+  if (!SvROK(cb)) {		/* Soft ref to the callback name */
+    char *cname = SvPV(cb,na);
+    if (*cname) {
+      gv = gv_fetchpv(cname, FALSE,SVt_PVCV);
       /* If we haven't found anything, give up */
       if (gv == Nullgv)
-	croak("method %s not found for callback",callback->fun[index]);
-
-      if (!(cv = sv_2cv(gv, &hvjunk, &gvjunk, FALSE)))
-	croak("sv_2cv failed on method");
-      callback->cvcache[index] = cv; /* save for future use */
+	croak("method %s not found for callback",cname);
+      if (!(cv = sv_2cv((SV *)gv, &hvjunk, &gvjunk, FALSE)))
+	croak("sv_2cv failed on method %s",cname);
+    } else {
+      cv = NULL;
     }
-    perl_call_sv((SV*)cv, G_SCALAR);
+  } else {			/* Hard ref to the real sub. */
+    cv = (CV*)SvRV(cb);
+  }
+  SvREFCNT_inc((SV*)cv);
+  return cv;
 }
 
 void button_callback(w, data)
@@ -106,13 +105,13 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     SvREFCNT_inc(dd->mysv);
     XPUSHs(dd->mysv);
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -123,14 +122,13 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_BUTT_1] && *(char*)dd->fun[CB_BUTT_1]) {
+  if (dd->fun[CB_BUTT_1]) {
+    PUSHMARK(sp);
     SvREFCNT_inc(dd->mysv);
     XPUSHs(dd->mysv);
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_BUTT_1);
+    perl_call_sv((SV*)dd->fun[CB_BUTT_1],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -141,14 +139,13 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_BUTT_2] && *(char*)dd->fun[CB_BUTT_2]) {
+  if (dd->fun[CB_BUTT_2]) {
+    PUSHMARK(sp);
     SvREFCNT_inc(dd->mysv);
     XPUSHs(dd->mysv);
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_BUTT_2);
+    perl_call_sv((SV*)dd->fun[CB_BUTT_2],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -159,14 +156,13 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_BUTT_3] && *(char*)dd->fun[CB_BUTT_3]) {
+  if (dd->fun[CB_BUTT_3]) {
+    PUSHMARK(sp);
     SvREFCNT_inc(dd->mysv);
     XPUSHs(dd->mysv);
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_BUTT_3);
+    perl_call_sv((SV*)dd->fun[CB_BUTT_3],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -178,14 +174,13 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSVpv(string,strlen(string))));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -198,14 +193,13 @@ void *data;
   dSP;
 
   dd->fun[0]; new_val;
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSVnv((double)new_val)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -218,15 +212,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSVpv(string,strlen(string))));
     XPUSHs(sv_2mortal(newSViv(index)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -240,16 +233,15 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSVpv(string,strlen(string))));
     XPUSHs(sv_2mortal(newSViv(index)));
     XPUSHs(sv_2mortal(newSViv(event_mask)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -259,14 +251,12 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
-  Safefree(dd->fun[CB_GENFUN]);
   Safefree(dd);  /* Timeout callback are called only once */
 }
 
@@ -277,13 +267,12 @@ int *fd;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(sv_2mortal(newSViv(*fd)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -295,15 +284,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_GENFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSViv(new_width)));
     XPUSHs(sv_2mortal(newSViv(new_height)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_GENFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -315,16 +303,15 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_BD_IDX] && *(char*)dd->fun[CB_BD_IDX]) {
+  if (dd->fun[CB_BD_IDX]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSViv(button)));
     XPUSHs(sv_2mortal(newSViv(x)));
     XPUSHs(sv_2mortal(newSViv(y)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_BD_IDX);
+    perl_call_sv((SV*)dd->fun[CB_BD_IDX],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -336,16 +323,15 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_BU_IDX] && *(char*)dd->fun[CB_BU_IDX]) {
+  if (dd->fun[CB_BU_IDX]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSViv(button)));
     XPUSHs(sv_2mortal(newSViv(x)));
     XPUSHs(sv_2mortal(newSViv(y)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_BU_IDX);
+    perl_call_sv((SV*)dd->fun[CB_BU_IDX],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -358,15 +344,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_KP_IDX] && *(char*)dd->fun[CB_KP_IDX]) {
+  if (dd->fun[CB_KP_IDX]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSVpv(input,strlen(input))));
     XPUSHs(sv_2mortal(newSViv(up_or_down)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_KP_IDX);
+    perl_call_sv((SV*)dd->fun[CB_KP_IDX],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -378,15 +363,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
-  if (dd->fun[CB_MM_IDX] && *(char*)dd->fun[CB_MM_IDX]) {
+  if (dd->fun[CB_MM_IDX]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_2mortal(newSViv(x)));
     XPUSHs(sv_2mortal(newSViv(y)));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_MM_IDX);
+    perl_call_sv((SV*)dd->fun[CB_MM_IDX],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -399,15 +383,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
   printf("Expose CB call (%x %x %x %x)\n",w, event, region, data);
   return;
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_EXPFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_EXPFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -418,15 +401,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
   printf("Resize CB call (%x %x)\n",w, data);
   return;
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_RESFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_RESFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -437,15 +419,14 @@ void *data;
   struct Edata *dd = data;
   dSP;
 
-  PUSHMARK(sp);
-
   printf("Realize CB call (%x %x)\n",w, data);
   return;
-  if (dd->fun[CB_GENFUN] && *(char*)dd->fun[CB_GENFUN]) {
+  if (dd->fun[CB_REAFUN]) {
+    PUSHMARK(sp);
     XPUSHs(SvREFCNT_inc(dd->mysv));
     XPUSHs(sv_mortalcopy(dd->data));
     PUTBACK;
-    do_callback(dd,CB_GENFUN);
+    perl_call_sv((SV*)dd->fun[CB_REAFUN],G_SCALAR|G_DISCARD);
   }
 }
 
@@ -455,10 +436,13 @@ struct Edata	*tmp;
 
 MODULE = Sx	PACKAGE = Sx	PREFIX = Sx_
 
+PROTOTYPES: ENABLED
+
 
 void
 OpenDisplay(args,...)
 	String_Array	args = NO_INIT
+	PROTOTYPE:	@
 	PPCODE: 
 	{
 	    int i;
@@ -504,16 +488,17 @@ void
 CloseWindow()
 
 Widget
-MakeForm(parent, where1, from1, where2, from2)
+MakeForm(parent, where1, from1, where2, from2, name = "form")
 	Widget		parent
 	int		where1
 	Widget		from1
 	int		where2
 	Widget		from2
+	char *		name
 	CODE:
 
 	Newz(666, tmp , 1, struct Edata);
-	RETVAL = MakeForm(parent, where1, from1, where2, from2);
+	RETVAL = MakeForm(parent, where1, from1, where2, from2, name);
 
 	OUTPUT:
 	RETVAL
@@ -524,63 +509,67 @@ SetForm(form)
 
 
 Widget
-MakeButton(label, callback, data = &sv_undef)
+MakeButton(label, callback, data, name = "button")
 	char *		label
-	char *		callback
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeButton(label, button_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback); 
+	RETVAL = MakeButton(label, button_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
 
 Widget
-Make3Button(label, callback1, callback2, callback3, data = &sv_undef)
+Make3Button(label, callback1, callback2, callback3, data, name = "ThreeCom")
 	char *		label
-	char *		callback1
-	char *		callback2
-	char *		callback3
+	SV *		callback1
+	SV *		callback2
+	SV *		callback3
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_BUTT_1] = NewString(callback1);
-	tmp->fun[CB_BUTT_2] = NewString(callback2);
-	tmp->fun[CB_BUTT_3] = NewString(callback3);
-	RETVAL = Make3Com(label, but1_callback, but2_callback, but3_callback, tmp);
+	tmp->fun[CB_BUTT_1] = NewCallback(callback1);
+	tmp->fun[CB_BUTT_2] = NewCallback(callback2);
+	tmp->fun[CB_BUTT_3] = NewCallback(callback3);
+	RETVAL = Make3Com(label, but1_callback, but2_callback, but3_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
 
 Widget
-MakeLabel(txt)
+MakeLabel(txt,name = "label")
 	char *		txt
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
-	RETVAL = MakeLabel(txt);
+	RETVAL = MakeLabel(txt,name);
 
 	OUTPUT:
 	RETVAL
 
 Widget
-MakeToggle(txt, state, widget, callback, data = &sv_undef)
+MakeToggle(txt, state, widget, callback, data, name = "toggle")
 	char *		txt
 	int		state
 	Widget		widget
-	char *		callback
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeToggle(txt, state, widget, button_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
+	RETVAL = MakeToggle(txt, state, widget, button_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
@@ -595,107 +584,68 @@ GetToggleState(widget)
 	Widget		widget
 
 Widget
-MakeDrawArea(width, height, callback, data = &sv_undef)
+MakeDrawArea(width, height, callback, data, name = "drawing_area")
 	int		width
 	int		height
-	char *		callback
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeDrawArea(width, height, redisplay_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
+	RETVAL = MakeDrawArea(width, height, redisplay_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
 
 void
 SetButtonDownCB(widget, callback)
-	Widget		widget = NO_INIT
-	char *		callback
+	Rwidget		widget
+	SV *		callback
 	CODE:
-	{
-		struct Edata *	w;
-
-		if (sv_isa(ST(0),"SxWidget")) {
-			unsigned long tmp;
-			tmp = (unsigned long)SvNV((SV*)SvRV(ST(0)));
-			w = (struct Edata *) tmp;
-		} else
-			croak("arg 1 is not a SxWidget");
-		w->fun[CB_BD_IDX] = callback;
-		w->cvcache[CB_BD_IDX] = NULL;
-		if (*callback)
-			SetButtonDownCB(w->w, button_down_callback);
-		else
-			SetButtonDownCB(w->w, NULL);
+	if (SvTRUE(callback)) {
+	  widget->fun[CB_BD_IDX] = NewCallback(callback);
+	  SetButtonDownCB(widget->w, button_down_callback);
+	} else {
+	  SetButtonDownCB(widget->w, NULL);
 	}
 
 void
 SetButtonUpCB(widget, callback)
-	Widget		widget = NO_INIT
-	char *		callback
+	Rwidget		widget
+	SV *		callback
 	CODE:
-	{
-		struct Edata *	w;
-
-		if (sv_isa(ST(0),"SxWidget")) {
-			unsigned long tmp;
-			tmp = (unsigned long)SvNV((SV*)SvRV(ST(0)));
-			w = (struct Edata *) tmp;
-		} else
-			croak("arg 1 is not a SxWidget");
-		w->fun[CB_BU_IDX] = callback;
-		w->cvcache[CB_BU_IDX] = NULL;
-		if (*callback)
-			SetButtonUpCB(w->w, button_up_callback);
-		else
-			SetButtonUpCB(w->w, NULL);
+        if (SvTRUE(callback)) {
+	  widget->fun[CB_BU_IDX] = NewCallback(callback);
+	  SetButtonUpCB(widget->w, button_up_callback);
+	} else {
+	  SetButtonUpCB(widget->w, NULL);
 	}
 
 void
 SetKeypressCB(widget, callback)
-	Widget		widget = NO_INIT
-	char *		callback
+	Rwidget		widget
+	SV *		callback
 	CODE:
-	{
-		struct Edata *	w;
-
-		if (sv_isa(ST(0),"SxWidget")) {
-			unsigned long tmp;
-			tmp = (unsigned long)SvNV((SV*)SvRV(ST(0)));
-			w = (struct Edata *) tmp;
-		} else
-			croak("form is not a SxWidget");
-		w->fun[CB_KP_IDX] = callback;
-		w->cvcache[CB_KP_IDX] = NULL;
-		if (*callback)
-			SetKeypressCB(w->w, keypress_callback);
-		else
-			SetKeypressCB(w->w, NULL);
+	if (SvTRUE(callback)) {
+	  widget->fun[CB_KP_IDX] = NewCallback(callback);
+	  SetKeypressCB(widget->w, keypress_callback);
+	} else {
+	  SetKeypressCB(widget->w, NULL);
 	}
 
 void
 SetMouseMotionCB(widget, callback)
-	Widget		widget = NO_INIT
-	char *		callback
+	Rwidget		widget
+	SV *		callback
 	CODE:
-	{
-		struct Edata *	w;
-
-		if (sv_isa(ST(0),"SxWidget")) {
-			unsigned long tmp;
-			tmp = (unsigned long)SvNV((SV*)SvRV(ST(0)));
-			w = (struct Edata *) tmp;
-		} else
-			croak("form is not a SxWidget");
-		w->fun[CB_MM_IDX] = callback;
-		w->cvcache[CB_MM_IDX] = NULL;
-		if (*callback)
-			SetMouseMotionCB(w->w, motion_callback);
-		else
-			SetMouseMotionCB(w->w, NULL);
+	if (SvTRUE(callback)) {
+	  widget->fun[CB_MM_IDX] = NewCallback(callback);
+	  SetMouseMotionCB(widget->w, motion_callback);
+	} else {
+	  SetMouseMotionCB(widget->w, NULL);
 	}
 
 void
@@ -716,12 +666,8 @@ SetDrawArea(widget)
 
 void
 GetDrawAreaSize(width, height)
-	int		width = NO_INIT
-	int		height = NO_INIT
-	CODE:
-
-	GetDrawAreaSize(&width,&height);
-
+	int		&width
+	int		&height
 	OUTPUT:
 	width
 	height
@@ -749,12 +695,13 @@ DrawLine(x1, y1, x2, y2)
 void
 DrawPolyline(points, ...)
 	XPoint *	points = NO_INIT
+	PROTOTYPE:	@
 	CODE:
 	{
 		int n, i;
 
 		i = items / 2;
-		Newz(666,points,i,XPoint);
+		New(666,points,i,XPoint);
 		for (n = 0; n < i; n++) {
 			points[n].x = SvIV(ST(0+(2*n)));
 		  	points[n].y = SvIV(ST(1+(2*n)));
@@ -767,12 +714,13 @@ DrawPolyline(points, ...)
 void
 DrawFilledPolygon(points, ...)
 	XPoint *	points = NO_INIT
+	PROTOTYPE:	@
 	CODE:
 	{
 		int n, i;
 
 		i = items / 2;
-		Newz(666,points,i,XPoint);
+		New(666,points,i,XPoint);
 		for (n = 0; n < i; n++) {
 			points[n].x = SvIV(ST(0+(2*n)));
 		  	points[n].y = SvIV(ST(1+(2*n)));
@@ -807,8 +755,8 @@ DrawArc(x, y, width, height, angle1, angle2)
 	int		y
 	int		width
 	int		height
-	double		angle1
-	double		angle2
+	int		angle1
+	int		angle2
 
 void
 DrawFilledArc(x, y, width, height, angle1, angle2)
@@ -816,8 +764,8 @@ DrawFilledArc(x, y, width, height, angle1, angle2)
 	int		y
 	int		width
 	int		height
-	double		angle1
-	double		angle2
+	int		angle1
+	int		angle2
 
 void
 DrawImage(data, x, y, width, height)
@@ -837,7 +785,7 @@ GetImage(x, y, width, height, result)
 	CODE:
 	{
 
-		Newz(666,result,width*height,unsigned char);
+		New(666,result,width*height,unsigned char);
 		GetImage(result,x,y,width,height);
 	}
 	OUTPUT:
@@ -853,17 +801,18 @@ ScrollDrawArea(dx, dy, x1, y1, x2, y2)
 	int		y2
 
 Widget
-MakeStringEntry(txt, size, callback, data = &sv_undef)
+MakeStringEntry(txt, size, callback, data = &sv_undef, name = "string")
 	char *		txt
 	int		size
-	char *		callback
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeStringEntry(txt, size, string_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
+	RETVAL = MakeStringEntry(txt, size, string_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
@@ -878,16 +827,17 @@ GetStringEntry(widget)
 	Widget		widget
 
 Widget
-MakeTextWidget(txt, is_file, editable, width, height)
+MakeTextWidget(txt, is_file, editable, width, height, name = "text")
 	char *		txt
 	int		is_file
 	int		editable
 	int		width
 	int		height
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
-	RETVAL = MakeTextWidget(txt, is_file, editable, width, height);
+	RETVAL = MakeTextWidget(txt, is_file, editable, width, height, name);
 
 	OUTPUT:
 	RETVAL
@@ -903,31 +853,33 @@ GetTextWidgetText(widget)
 	Widget		widget
 
 Widget
-MakeHorizScrollbar(len, callback, data = &sv_undef)
+MakeHorizScrollbar(len, callback, data, name = "scrollbar")
 	int		len
-	char *		callback
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeHorizScrollbar(len, scroll_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
+	RETVAL = MakeHorizScrollbar(len, scroll_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
 
 Widget
-MakeVertScrollbar(height, callback, data = &sv_undef)
+MakeVertScrollbar(height, callback, data, name = "scrollbar")
 	int		height
-	char *		callback
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeVertScrollbar(height, scroll_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
+	RETVAL = MakeVertScrollbar(height, scroll_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
@@ -943,15 +895,16 @@ Widget
 MakeScrollList(width, height, callback, data, list, ...)
 	int		width
 	int		height
-	char *		callback
+	SV *		callback
 	SV *		data
 	char **		list = NO_INIT
+	PROTOTYPE:	$$$$@
 	CODE:
 
 	list = XS_unpack_String_Array(ax+4,items-4);
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
 	RETVAL = MakeScrollList(list, width, height, list_callback, tmp);
 
 	OUTPUT:
@@ -961,15 +914,16 @@ Widget
 Make3List(width, height, callback, data, list, ...)
 	int		width
 	int		height
-	char *		callback
+	SV *		callback
 	SV *		data
 	char **		list = NO_INIT
+	PROTOTYPE:	$$$$@
 	CODE:
 
 	list = XS_unpack_String_Array(ax+4,items-4);
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
 	RETVAL = MakeThreeList(list, width, height, threelist_callback, tmp);
 
 	OUTPUT:
@@ -988,33 +942,36 @@ void
 ChangeScrollList(widget, new_list, ...)
 	Widget		widget
 	char **		new_list = NO_INIT
+	PROTOTYPE:	$@
 	CODE:
 	new_list = XS_unpack_String_Array(ax+1,items-1);
 	ChangeScrollList(widget,new_list);
 
 Widget
-MakeMenu(name)
+MakeMenu(title, name = "menuButton")
+	char *		title
 	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
-	RETVAL = MakeMenu(name);
+	RETVAL = MakeMenu(title,name);
 
 	OUTPUT:
 	RETVAL
 
 Widget
-MakeMenuItem(menu, name, callback, data = &sv_undef)
+MakeMenuItem(menu, title, callback, data, name = "menu_item")
 	Widget		menu
-	char *		name
-	char *		callback
+	char *		title
+	SV *		callback
 	SV *		data
+	char *		name
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
-	RETVAL = MakeMenuItem(menu, name, button_callback, tmp);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
+	RETVAL = MakeMenuItem(menu, title, button_callback, tmp, name);
 
 	OUTPUT:
 	RETVAL
@@ -1116,14 +1073,14 @@ TextWidth(font, txt)
 	char *		txt
 
 unsigned long
-AddTimeOut(interval, callback, data = &sv_undef)
+AddTimeOut(interval, callback, data)
 	unsigned long	interval
-	char *		callback
+	SV *		callback
 	SV *		data
 	CODE:
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
 	RETVAL = AddTimeOut(interval, general_callback, tmp);
 
 	OUTPUT:
@@ -1134,30 +1091,30 @@ RemoveTimeOut(id)
 	unsigned long	id
 
 unsigned long
-AddReadCallback(fd, callback, data = &sv_undef)
+AddReadCallback(fd, callback, data)
 	int		fd
-	char *		callback
+	SV *		callback
 	SV *		data
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
 	RETVAL = AddReadCallback(fd, io_callback, tmp);
 
 	OUTPUT:
 	RETVAL
 
 unsigned long
-AddWriteCallback(fd, callback, data = &sv_undef)
+AddWriteCallback(fd, callback, data)
 	int		fd
-	char *		callback
+	SV *		callback
 	SV *		data
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_GENFUN] = NewString(callback);
+	tmp->fun[CB_GENFUN] = NewCallback(callback);
 	RETVAL = AddWriteCallback(fd, io_callback, tmp);
 
 	OUTPUT:
@@ -1216,15 +1173,16 @@ SetColorMap(num)
 void
 SetMyColorMap(color_array, ...)
 	RGB_Array	color_array = NO_INIT
+	PROTOTYPE:	@
 	CODE:
 	{
 		unsigned char *red, *green, *blue;
 		int n, i;
 		
 		i = items / 3;
-		Newz(666,red,i,unsigned char);
-		Newz(666,green,i,unsigned char);
-		Newz(666,blue,i,unsigned char);
+		New(666,red,i,unsigned char);
+		New(666,green,i,unsigned char);
+		New(666,blue,i,unsigned char);
 		for (n = 0; n < i; n++) {
 			red[n] = (unsigned char) 	SvIV(ST(0+(n*3)));
 			green[n] = (unsigned char)	SvIV(ST(1+(n*3)));
@@ -1248,17 +1206,15 @@ WTA(widget)
 	RETVAL
 
 void
-XtDestroyWidget(widget)
+DestroyWidget(widget)
 	Widget		widget
 	CODE:
 	if (widget)
 	  XtDestroyWidget(widget);
-	else
-          printf("Trying to destroy Null widget %s\n",ST(0));
 
 
 void
-XWarpPointer(widget, dx, dy)
+WarpPointer(widget, dx, dy)
 	Widget		widget
 	int		dx
 	int		dy
@@ -1304,20 +1260,20 @@ AddTrans(widget, text)
 	char *		text
 
 Widget
-MakeCanvas(width, height, expose, realize, resize, data)
+MakeCanvas(width, height, expose, realize, resize, data, name = "canvas")
 	int		width
 	int		height
-	char *		expose
-	char *		realize
-	char *		resize
+	SV *		expose
+	SV *		realize
+	SV *		resize
 	SV *		data
 	CODE:
 
 	Newz(666, tmp, 1, struct Edata);
 	tmp->data = newSVsv(data);
-	tmp->fun[CB_REAFUN] = NewString(realize);
-	tmp->fun[CB_RESFUN] = NewString(resize);
-	tmp->fun[CB_EXPFUN] = NewString(expose);
+	tmp->fun[CB_REAFUN] = NewCallback(realize);
+	tmp->fun[CB_RESFUN] = NewCallback(resize);
+	tmp->fun[CB_EXPFUN] = NewCallback(expose);
 	RETVAL = MakeCanvas(width, height, realize_callback, resize_callback,
 					   expose_callback, tmp);
 	OUTPUT:
@@ -1333,8 +1289,8 @@ MakeCanvas(width, height, expose, realize, resize, data)
 void
 GetTextSelectionPos(widget, begin, end)
 	Widget		widget
-	long 		begin = NO_INIT
-	long 		end = NO_INIT
+	long		&begin
+	long		&end
 	CODE:
 	XawTextGetSelectionPos(widget, &begin, &end);
 	OUTPUT:
@@ -1420,4 +1376,6 @@ YELLOW()
 	RETVAL = YELLOW;
 	OUTPUT:
 	RETVAL
+
+
 

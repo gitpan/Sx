@@ -38,11 +38,12 @@ static StringInfo *string_widgets = NULL;
 /*
  * String Entry Widget Creation stuff.
  */
-Widget MakeStringEntry(txt, size, func, data)
+Widget MakeStringEntry(txt, size, func, data, name)
 char *txt;
 int size;
 StringCB func;
 void *data;
+char *name;
 {
   static int already_done = FALSE;
   static XtTranslations	trans;
@@ -86,7 +87,7 @@ void *data;
    }
 
 
-  str_entry = XtCreateManagedWidget("string", asciiTextWidgetClass,
+  str_entry = XtCreateManagedWidget(name, asciiTextWidgetClass,
 				    lsx_curwin->form_widget,wargs,n);
 
   if (str_entry)  /* only if we got a real widget do we bother */
@@ -196,9 +197,10 @@ Widget w;
 char *slurp_file();
 
 
-Widget MakeTextWidget(txt, is_file, editable, w, h)
+Widget MakeTextWidget(txt, is_file, editable, w, h, name)
 char *txt;
 int is_file, editable, w, h;
+char *name;
 {
   int n;
   Arg wargs[10];
@@ -244,7 +246,7 @@ int is_file, editable, w, h;
   if (editable)
     { XtSetArg(wargs[n], XtNeditType,     XawtextEdit);              n++; }
 
-  text = XtCreateManagedWidget("text", asciiTextWidgetClass,
+  text = XtCreateManagedWidget(name, asciiTextWidgetClass,
 			       lsx_curwin->form_widget,wargs,n);
 
 
