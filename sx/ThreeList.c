@@ -227,19 +227,23 @@ Widget w;
     values.foreground	= lw->threeList.foreground;
     values.font		= lw->threeList.font->fid;
 
+#ifdef X11R6
     if ( lw->simple.international == True )
         lw->threeList.normgc = XtAllocateGC( w, 0, (unsigned) GCForeground,
 				 &values, GCFont, 0 );
     else
+#endif
         lw->threeList.normgc = XtGetGC( w, (unsigned) GCForeground | GCFont,
 				 &values);
 
     values.foreground	= lw->core.background_pixel;
 
+#ifdef X11R6
     if ( lw->simple.international == True )
         lw->threeList.revgc = XtAllocateGC( w, 0, (unsigned) GCForeground,
 				 &values, GCFont, 0 );
     else
+#endif
         lw->threeList.revgc = XtGetGC( w, (unsigned) GCForeground | GCFont,
 				 &values);
 
@@ -249,10 +253,12 @@ Widget w;
 						lw->core.depth);
     values.fill_style = FillTiled;
 
+#ifdef X11R6
     if ( lw->simple.international == True )
         lw->threeList.graygc = XtAllocateGC( w, 0, (unsigned) GCTile | GCFillStyle,
 			      &values, GCFont, 0 );
     else
+#endif
         lw->threeList.graygc = XtGetGC( w, (unsigned) GCFont | GCTile | GCFillStyle,
 			      &values);
 }
@@ -294,10 +300,12 @@ Widget w;
         lw->threeList.longest = 0; /* so it will accumulate real longest below */
 
         for ( i = 0 ; i < lw->threeList.nitems; i++)  {
+#ifdef X11R6
             if ( lw->simple.international == True )
 	        len = XmbTextEscapement(lw->threeList.fontset, lw->threeList.threeList[i],
 			 			    strlen(lw->threeList.threeList[i]));
             else
+#endif
                 len = XTextWidth(lw->threeList.font, lw->threeList.threeList[i],
 			 			    strlen(lw->threeList.threeList[i]));
             if (len > lw->threeList.longest)
@@ -409,11 +417,13 @@ Cardinal *num_args;
 
     /* Set row height. based on font or fontset */
 
+#ifdef X11R6
     if (lw->simple.international == True )
         lw->threeList.row_height =
                      XExtentsOfFontSet(lw->threeList.fontset)->max_ink_extent.height
                         + lw->threeList.row_space;
     else
+#endif
         lw->threeList.row_height = lw->threeList.font->max_bounds.ascent
 			+ lw->threeList.font->max_bounds.descent
 			+ lw->threeList.row_space;
@@ -634,9 +644,11 @@ int item;
 	  + lw->threeList.internal_height;
     }
 
+#ifdef X11R6
     if ( lw->simple.international == True )
         str_y = y + abs(ext->max_ink_extent.y); 
     else
+#endif
         str_y = y + lw->threeList.font->max_bounds.ascent;
 
     if (item == lw->threeList.is_highlighted) {
@@ -679,10 +691,12 @@ int item;
 
     ClipToShadowInteriorAndLongest( lw, &gc, x );
 
+#ifdef X11R6
     if ( lw->simple.international == True )
         XmbDrawString( XtDisplay( w ), XtWindow( w ), lw->threeList.fontset,
 		  gc, x, str_y, str, strlen( str ) );
     else
+#endif
         XDrawString( XtDisplay( w ), XtWindow( w ),
 		  gc, x, str_y, str, strlen( str ) );
 
@@ -1025,14 +1039,20 @@ Cardinal *num_args;
         redraw = TRUE;
     }
 
-    if ( ( cl->threeList.font != nl->threeList.font ) &&
-				( cl->simple.international == False ) )
+    if ( ( cl->threeList.font != nl->threeList.font ) 
+#ifdef X11R6
+	&& ( cl->simple.international == False ) 
+#endif
+	)
         nl->threeList.row_height = nl->threeList.font->max_bounds.ascent
 	                    + nl->threeList.font->max_bounds.descent
 			    + nl->threeList.row_space;
 
-    else if ( ( cl->threeList.fontset != nl->threeList.fontset ) &&
-				( cl->simple.international == True ) )
+    else if ( ( cl->threeList.fontset != nl->threeList.fontset ) 
+#ifdef X11R6
+	     && ( cl->simple.international == True ) 
+#endif
+	     )
         nl->threeList.row_height = ext->max_ink_extent.height + nl->threeList.row_space;
 
     /* ...If the above two font(set) change checkers above both failed, check
@@ -1041,9 +1061,11 @@ Cardinal *num_args;
 
     else if ( cl->threeList.row_space != nl->threeList.row_space ) {
 
+#ifdef X11R6
         if (cl->simple.international == True )
             nl->threeList.row_height = ext->max_ink_extent.height + nl->threeList.row_space;
         else
+#endif
             nl->threeList.row_height = nl->threeList.font->max_bounds.ascent
 	                        + nl->threeList.font->max_bounds.descent
 			        + nl->threeList.row_space;

@@ -1130,7 +1130,7 @@ AddTimeOut(interval, callback, data = &sv_undef)
 	RETVAL
 
 void
-RemoveAddTimeOut(id)
+RemoveTimeOut(id)
 	unsigned long	id
 
 unsigned long

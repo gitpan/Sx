@@ -1,6 +1,5 @@
 MANIFEST
 Makefile.PL
-Makefile.old
 README
 Sx.pm
 Sx.pod

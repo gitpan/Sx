@@ -1,6 +1,6 @@
-Sx-2.1			fmc@pasteur.fr
+Sx-2.2			fmc@pasteur.fr
 
-Date: 12-Jun-95, 1-Aug-95, 7-Aug-95
+Date: 12-Jun-95, 1-Aug-95, 7-Aug-95, 15-Oct-95
 ============================
 Installation in (very) short
 ============================
@@ -12,11 +12,14 @@ Installation in (very) short
 
 - Edit Sx/Makefile.PL: change DEFINE, INC, LIBS, etc. as needed.
   In particular, if you want to compile for the 3d version of Xaw,
-  you should include '-lXaw3d' in LIBS and '-DXAW3D' in INCS.
+  you should include '-lXaw3d' in LIBS and '-DXAW3D' in INCS. Be
+  careful with the commented LDFROM line, you should uncomment it 
+  at least on SunOs.
 
 - Edit Sx/sx/libsx_defs: change CC, CFLAGS and RANLIB as needed.
   Here too, make sure to include '-DXAW3D' in CFLAGS if you want to
-  compile for the 3d version of Xaw.
+  compile for the 3d version of Xaw. Include also -DX11R6 if you're
+  running it.
 
 - Create a new Makefile by
 
@@ -38,6 +41,6 @@ Installation in (very) short
 
 - Thanks to 
 	- Dominic Giampaolo <dbg@sgi.com>.
-	- Andreas Koppenhoefer <koppenas@koppenas.informatik.uni-stuttgart.de>
+	- Andreas Koppenhoefer <koppenas@informatik.uni-stuttgart.de>
 	- and everyone on the perl5-porters list.
 

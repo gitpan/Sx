@@ -405,7 +405,7 @@ void *data;
 void RemoveTimeOut(id)
 unsigned long id;
 {
-  XtRemoveInput((XtIntervalId) id);
+  XtRemoveTimeOut((XtIntervalId) id);
 }
 
 

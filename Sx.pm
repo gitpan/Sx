@@ -44,11 +44,13 @@ require DynaLoader;
 
 bootstrap Sx;
 
-$SxVersion = "2.1";
+$SxVersion = "2.2";
 $SAME_DISPLAY = undef;
 $ORIGINAL_WINDOW = undef;
 $NullSx = undef;
 $TOP_LEVEL_FORM = undef;
+
+$VERSION = $SxVersion;		# for use by Exporter.pm
 
 sub AddTranslation {
   my($widget,%trans_list) = @_;

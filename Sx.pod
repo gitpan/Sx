@@ -84,10 +84,10 @@ drawing area that you could use to draw whatever graphics you wanted:
     $res = OpenDisplay("My Window",@ARGV);
     exit unless($res);
 
-    $w[0] = MakeButton("Quit", quit, $Nullsx);
-    $w[1] = MakeDrawArea(300,300, draw_stuff, $Nullsx);
+    $w[0] = MakeButton("Quit", 'quit', $Sx::Nullsx);
+    $w[1] = MakeDrawArea(300,300, 'draw_stuff', $Sx::Nullsx);
 
-    SetWidgetPos($w[1], $PLACE_UNDER, $w[0], $NO_CARE, $Nullsx);
+    SetWidgetPos($w[1], $Sx::PLACE_UNDER, $w[0], $Sx::NO_CARE, $Sx::Nullsx);
 
     ShowDisplay();
     GetStandardColors();
@@ -171,7 +171,7 @@ will be interpreted properly (i.e. you will get a multiline label).
 The next two arguments are a callback function, and an arbitraryperl
 value that will be passed to the function.
 
-If you plan to attach a bitmap to this widget, you can specify Nullsx
+If you plan to attach a bitmap to this widget, you can specify Sx::Nullsx
 for the label text (see the docs for SetWidgetBitmap()).
 
 When the button is pressed, the callback will be called.  This
@@ -247,9 +247,9 @@ radio group.  Any single widget can I<only> be in one radio group.
 
 Example:
 
-   $widg1 = MakeToggleWidget("Thing 1", 1, $Nullsx,  func1, $Nullsx);
-   $widg2 = MakeToggleWidget("Thing 2", 0, $widg1, func2, $Nullsx);
-   $widg3 = MakeToggleWidget("Thing 3", 0, $widg1, func3, $Nullsx);
+   $widg1 = MakeToggleWidget("Thing 1", 1, $Sx::Nullsx, 'func1', $Sx::Nullsx);
+   $widg2 = MakeToggleWidget("Thing 2", 0, $widg1, 'func2', $Sx::Nullsx);
+   $widg3 = MakeToggleWidget("Thing 3", 0, $widg1, 'func3', $Sx::Nullsx);
 
 Notice how widg2 and widg3 specify widg1 as their Widget argument.
 This connects all three into a radio group in which only one can be
@@ -442,7 +442,7 @@ than the old value).
 A scrollbar callback routine should look like:
 
     sub scroll_func {
-	my (widget, new_val, data) = @_;
+	my($widget, $new_val, $data) = @_;
     }
 
 The first argument is the scrollbar widget that the user is
@@ -707,17 +707,17 @@ created.  The first form widget is always placed in the top left
 corner of the window.
 
 The `parent' argument to MakeForm() specifies at what level the new
-form should be created.  If you specify $TOP_LEVEL_FORM (which is the
+form should be created.  If you specify $Sx::TOP_LEVEL_FORM (which is the
 usual thing to do) the new form is created at the top level of the
 window.  If you pass another form widget for `parent', then this new
 form widget will be a child of the other form widget.  This lets you
 create hierarchical "boxes" in your display.
 
 The arguments where1, from1, where2, from2 are the same as in
-SetWidgetPos().  That is, you specify either NO_CARE, PLACE_UNDER, or
-PLACE_RIGHT for where1 and where2 and the from1/from2 arguments are
+SetWidgetPos().  That is, you specify either Sx::NO_CARE, Sx::PLACE_UNDER, or
+Sx::PLACE_RIGHT for where1 and where2 and the from1/from2 arguments are
 the widgets you would like to place something to the right of or under
-(or they are NULL if you specified NO_CARE).  See SetWidgetPos() for
+(or they are NULL if you specified Sx::NO_CARE).  See SetWidgetPos() for
 more documentation.
 
 Now for an example:
@@ -743,16 +743,16 @@ the leftmost form are two buttons.  The form on the right has a single
 drawing area.  Skipping some of the unnecessary details, we could
 accomplish the above display with the following code:
 
-  $form1 = MakeForm($TOP_LEVEL_FORM, $NO_CARE, 
-		      $Nullsx, $NO_CARE, Nullsx);
-  $w[0]  = MakeButton("Btn1", $Nullsx, $Nullsx);
-  $w[1]  = MakeButton("Btn2", $Nullsx, $Nullsx);
+  $form1 = MakeForm($TOP_LEVEL_FORM, $Sx::NO_CARE, 
+		      $Sx::Nullsx, $Sx::NO_CARE, $Sx::Nullsx);
+  $w[0]  = MakeButton("Btn1", $Sx::Nullsx, $Sx::Nullsx);
+  $w[1]  = MakeButton("Btn2", $Sx::Nullsx, $Sx::Nullsx);
 
-  SetWidgetPos($w[1], $PLACE_UNDER, $w[0], $NO_CARE, $Nullsx);
+  SetWidgetPos($w[1], $Sx::PLACE_UNDER, $w[0], $Sx::NO_CARE, $Sx::Nullsx);
 
-  $form2 = MakeForm($TOP_LEVEL_FORM, $PLACE_RIGHT, 
-		      $form1, $NO_CARE, $Nullsx);
-  $w[2]  = MakeDrawArea(200, 200, $Nullsx, $Nullsx);
+  $form2 = MakeForm($TOP_LEVEL_FORM, $Sx::PLACE_RIGHT, 
+		      $form1, $Sx::NO_CARE, $Sx::Nullsx);
+  $w[2]  = MakeDrawArea(200, 200, $Sx::Nullsx, $Sx::Nullsx);
 
 As you can see, we create the first form and specify that we don't
 care where it goes (the first form widget is always placed in the top
@@ -775,8 +775,8 @@ create a new form (unless you're creating a child form).
 
 The SetForm() function allows you to change what is considered the
 current form.  Normally you only use this function to set the current
-form to be TOP_LEVEL_FORM.  You can cause your program to crash if you
-are not careful about what you set as the current form.
+form to be Sx::TOP_LEVEL_FORM.  You can cause your program to crash if
+you are not careful about what you set as the current form.
 
 The main purpose of this function is to let you create displays that
 have both form widgets and other "normal" widgets at the same level.
@@ -788,10 +788,10 @@ After calling this function, you can position any new widgets
 relative to other widgets (usually form widgets) created at the top
 level of the window.
 
-The normal calling sequence is: C<SetForm(TOP_LEVEL_FORM)>, although
-you can specify any other form widget you like.  Be careful, as it is
-possible to confuse the X layout routines and cause your program to
-crash.
+The normal calling sequence is: C<SetForm(Sx::TOP_LEVEL_FORM)>,
+although you can specify any other form widget you like.  Be careful,
+as it is possible to confuse the X layout routines and cause your
+program to crash.
 
 NOTE: Before you call SetForm() and start creating new widgets and
 positioning them, any previous form widgets should be completely
@@ -870,20 +870,20 @@ the program (such as a quit button or menu option).
 If you did not call ShowDisplay(), MainLoop() will call it for you and
 then launch into the main loop.
 
-You should not call MainLoop() for NONEXCLUSIVE mode windows created
+You should not call MainLoop() for Sx::NONEXCLUSIVE mode windows created
 with MakeWindow().  Those type of windows have their callbacks handled
 by the MainLoop() function that is already executing (i.e. the one you
 called for your original window).
 
-If the window is an EXCLUSIVE mode window, then MainLoop() keeps
-executing until CloseWindow() is called on the EXCLUSIVE mode window.
-That is, MainLoop() blocks until the EXCLUSIVE mode window is closed,
+If the window is an Sx::EXCLUSIVE mode window, then MainLoop() keeps
+executing until CloseWindow() is called on the Sx::EXCLUSIVE mode window.
+That is, MainLoop() blocks until the Sx::EXCLUSIVE mode window is closed,
 and then it returns.
 
 If you create a non-exclusive mode window, the general order of events
 is:
 
-      MakeWindow(NONEXCLUSIVE_WINDOW, ....);
+      MakeWindow(Sx::NONEXCLUSIVE_WINDOW, ....);
       MakeButton(...);
       ShowDisplay();
 
@@ -893,10 +893,10 @@ when the callback that created this new window returns, all processing
 takes place normally, including the processing of the new window and
 its callbacks.
 
-For a window of EXCLUSIVE_WINDOW mode (like a popup), the general
+For a window of Sx::EXCLUSIVE_WINDOW mode (like a popup), the general
 order execution is:
 
-      MakeWindow(NONEXCLUSIVE_WINDOW, ....);
+      MakeWindow(Sx::EXCLUSIVE_WINDOW, ....);
       MakeButton(...);
       ShowDisplay();
 
@@ -904,7 +904,7 @@ order execution is:
 
       # do something with whatever values the popup got for us
 
-When MainLoop() returns for an EXCLUSIVE_WINDOW, the window has been
+When MainLoop() returns for an Sx::EXCLUSIVE_WINDOW, the window has been
 closed.
 
 =item C<SyncDisplay(void)>
@@ -939,25 +939,25 @@ not (described below).
 After this functions returns, the current window is the one you just
 created and you can begin adding widgets to it with the MakeXXX()
 calls.  After have created and added any widgets you want, you should
-call ShowDisplay(), and if the window is an EXCLUSIVE_MODE window,
+call ShowDisplay(), and if the window is an Sx::EXCLUSIVE_MODE window,
 then you should call MainLoop() (which blocks until the window is
-closed).  If you opened the window with the NONEXCLUSIVE_WINDOW
+closed).  If you opened the window with the Sx::NONEXCLUSIVE_WINDOW
 option, you should NOT call MainLoop().
 
-If you pass a $Nullsx for the window_name, it receives a default title of
+If you pass a $Sx::Nullsx for the window_name, it receives a default title of
 "Untitled".
 
-If you pass $SAME_DISPLAY, for the display name, the
+If you pass $Sx::SAME_DISPLAY, for the display name, the
 window opens on the same display as the original window opened by
 OpenDisplay().
 
 The argument, exclusive, indicates what type of window to open.  A
-normal window is a NONEXCLUSIVE_WINDOW.  That is, it will not block
+normal window is a Sx::NONEXCLUSIVE_WINDOW.  That is, it will not block
 the user from interacting with your existing window.  An
-EXCLUSIVE_WINDOW is a popup window that blocks input to your main
+Sx::EXCLUSIVE_WINDOW is a popup window that blocks input to your main
 window until the popup is closed with CloseWindow().
 
-The EXCLUSIVE_WINDOW mode is useful for requestors that need an answer
+The Sx::EXCLUSIVE_WINDOW mode is useful for requestors that need an answer
 and the user should not be able to do other things in the application.
 Of course some user-interface folks don't think modal windows like
 this are good, but tough cookies for them because some times it's
@@ -972,7 +972,7 @@ active one when you wish to manipulate the various windows.
 
 The argument must be a valid value returned by MakeWindow().  If
 you would like to set the current window to be the original window
-opened by OpenDisplay(), you can pass the #define, ORIGINAL_WINDOW.
+opened by OpenDisplay(), you can pass the #define, Sx::ORIGINAL_WINDOW.
 
 When you change windows, the current drawing area is also changed to
 be the last current drawing area in the new window (if there is a
@@ -1052,7 +1052,7 @@ the first time (by calling MainLoop()).  The redisplay callback
 function should looks like:
 
     sub redisplay {
-	my(widget, width, height, data) = @_
+	my($widget, $width, $height, $data) = @_
     }
 
 The first argument is the drawing area widget that needs to be
@@ -1082,7 +1082,7 @@ user presses a mouse button in the specified drawing area widget `w'.
 The callback function should looks like:
 
     sub  callback {
-	my(widget, which_button, x, y, data) = @_;
+	my($widget, $which_button, $x, $y, $data) = @_;
     }
 
 Then, whenever the user presses a mouse button in the drawing area,
@@ -1114,7 +1114,7 @@ keyboard input in the drawing area.
 The callback function should looks like:
 
       sub  callback {
-	my(widget, input, up_or_down, data) = @_;
+	my($widget, $input, $up_or_down, $data) = @_;
       }
 
 Then, whenever the user presses keys in the drawing area, your
@@ -1162,7 +1162,7 @@ through.
 The callback function should looks like:
 
     sub  callback {
-	(widget, x, y, data) = @_;
+	my($widget, $x, $y, $data) = @_;
     }
 
 The first argument is (as usual) the Widget where the mouse was moved
@@ -1235,9 +1235,10 @@ numbers of course draw wider lines.
 This function sets the drawing mode for the current drawing area.  A
 drawing mode is one of:
 
-    GXcopy, GXxor, GXinvert, GXor, GXclear, GXand, GXandReverse,
-    GXnoop, GXnor, GXequiv, GXinvert, GXorReverse, GXcopyInverted,
-    GXorInverted, GXnand, and GXset
+    Sx::GXcopy, Sx::GXxor, Sx::GXinvert, Sx::GXor, Sx::GXclear,
+    Sx::GXand, Sx::GXandReverse, Sx::GXnoop, Sx::GXnor, Sx::GXequiv,
+    Sx::GXinvert, Sx::GXorReverse, Sx::GXcopyInverted,
+    Sx::GXorInverted, Sx::GXnand, and Sx::GXset
 
 Most of these are stupid/useless modes defined by X (so ignore them).
 
@@ -1245,13 +1246,13 @@ The primary mode is GXcopy (the default mode).  This causes all
 primitives to draw in the foreground color, overwriting any pixels
 already drawn.
 
-Libsx also defines a special mode: $SANE_XOR.  The SANE_XOR mode will
-actually draw primitives in a true XOR mode so that you can draw
-things like rubber-band boxes that the user stretches with the mouse.
-You must use SANE_XOR if you want true XOR'ed primitives, GXxor will
-definitely NOT work as you expect.
+Libsx also defines a special mode: $Sx::SANE_XOR.  The Sx::SANE_XOR
+mode will actually draw primitives in a true XOR mode so that you can
+draw things like rubber-band boxes that the user stretches with the
+mouse.  You must use Sx::SANE_XOR if you want true XOR'ed primitives,
+GXxor will definitely NOT work as you expect.
 
-When you are done using SANE_XOR, you would normally call
+When you are done using Sx::SANE_XOR, you would normally call
 SetDrawMode() with an argument of GXcopy to restore normal drawing.
 
 =item C<GetDrawAreaSize(width, height)>
@@ -1513,13 +1514,12 @@ stored.
 
 =item C<GetStandardColors()>
 
-This function gets 6 standard colors, $RED, $GREEN, $BLUE, $YELLOW, $BLACK,
-and $WHITE.  These 6 variables contain values which can be used in
+This function sets 6 function returning standard colors, RED, GREEN,
+BLUE, YELLOW, BLACK, and WHITE.  The values returned can be used in
 calls to SetColor(), SetFgColor(), SetBgColor(), etc.
 
-Do not use the values in RED, GREEN, BLUE, YELLOW, BLACK or WHITE
-before calling GetStandardColors().  The results are undefined if you
-do this.
+Do not call RED, GREEN, BLUE, YELLOW, BLACK or WHITE before calling
+GetStandardColors().  The results are undefined if you do this.
 
 NOTE: You can only call GetStandardColors() after calling the
 ShowDisplay() function.
@@ -1620,18 +1620,18 @@ smoothly continuous.  It saves you the hassle of writing them yourself
 (even though they are mostly easy).  The "num" argument you pass in
 should be one of the following variable :
 
-    $GREY_SCALE_1    0
-    $GREY_SCALE_2    1
-    $RAINBOW_1       2
-    $RAINBOW_2       3
+    $Sx::GREY_SCALE_1    0
+    $Sx::GREY_SCALE_2    1
+    $Sx::RAINBOW_1       2
+    $Sx::RAINBOW_2       3
 
-The colormap GREY_SCALE_2 is a complete smooth color ramp from pure
-black (color 0) to pure white (color 255).  The other grey scale,
-GREY_SCALE_1 is a nearly pure ramp from black (color 0) to white
+The colormap Sx::GREY_SCALE_2 is a complete smooth color ramp from
+pure black (color 0) to pure white (color 255).  The other grey scale,
+Sx::GREY_SCALE_1 is a nearly pure ramp from black (color 0) to white
 (color 252), but also has a few additional colors thrown in near the
-end of the colormap.  The two RAINBOW_? colormaps have different types
-of smooth changing rainbows of color.  This are really only useful for
-drawing pretty patterns or doing false coloring.
+end of the colormap.  The two Sx::RAINBOW_? colormaps have different
+types of smooth changing rainbows of color.  This are really only
+useful for drawing pretty patterns or doing false coloring.
 
 NOTE: You should call GetAllColors() before you call this routine.  It
 is not necessary, but if you don't, and GetAllColors() fails, you will
@@ -1725,15 +1725,15 @@ possible, and you can even specify that you don't care where a
 specific widget is placed.
 
 There are three types of placement.  You can place a widget to the
-right of another widget with $PLACE_RIGHT.  If the argument "where1" is
-$PLACE_RIGHT, then the specified widget will be placed to the right of the
-Widget "from1".  If "where1" is equal to $PLACE_UNDER, the widget will be
-placed under the widget "from1".  The same holds true for the argument
-"where2" and Widget "from2".  Having two arguments is necessary to be
-able to unambiguously specify where you want components placed in the
-display.  If you don't care about where a widget is placed, you can
-use $NO_CARE for the `where' argument and a $Nullsx value for the `from'
-argument.
+right of another widget with $Sx::PLACE_RIGHT.  If the argument
+"where1" is $Sx::PLACE_RIGHT, then the specified widget will be placed
+to the right of the Widget "from1".  If "where1" is equal to
+$Sx::PLACE_UNDER, the widget will be placed under the widget "from1".
+The same holds true for the argument "where2" and Widget "from2".
+Having two arguments is necessary to be able to unambiguously specify
+where you want components placed in the display.  If you don't care
+about where a widget is placed, you can use $Sx::NO_CARE for the
+`where' argument and a $Sx::Nullsx value for the `from' argument.
 
 Generally, the first widget created need not be specified, it will
 always be in the top left corner.  Other widgets can the be placed
@@ -1741,33 +1741,33 @@ relative to that widget.  For example, if you created 4 widgets ($w[0..4])
 and wanted to arrange them in a column, you would do the
 following :
 
-     SetWidgetPos($w[1], $PLACE_UNDER, $w[0], $NO_CARE, $Nullsx);
-     SetWidgetPos($w[2], $PLACE_UNDER, $w[1], $NO_CARE, $Nullsx);
-     SetWidgetPos($w[3], $PLACE_UNDER, $w[2], $NO_CARE, $Nullsx);
+     SetWidgetPos($w[1], $Sx::PLACE_UNDER, $w[0], $Sx::NO_CARE, $Sx::Nullsx);
+     SetWidgetPos($w[2], $Sx::PLACE_UNDER, $w[1], $Sx::NO_CARE, $Sx::Nullsx);
+     SetWidgetPos($w[3], $Sx::PLACE_UNDER, $w[2], $Sx::NO_CARE, $Sx::Nullsx);
 
 Notice how the third argument changes; we are placing the next widget
 underneath the previous widget.  The zero'th widget ($w[0]) doesn't
 have to be placed because it is always in the top left corner (this
 can not be changed).
 
-If you wanted to arrange things in a row, you would use $PLACE_RIGHT
-instead of $PLACE_UNDER.
+If you wanted to arrange things in a row, you would use $Sx::PLACE_RIGHT
+instead of $Sx::PLACE_UNDER.
 
 As a more complicated example, supposed you want to create two rows of
 widgets, and a drawing area.  You would do the following :
 
      # first three across the top
-     SetWidgetPos($w[1], $PLACE_RIGHT, $w[0], $NO_CARE, $Nullsx);
-     SetWidgetPos($w[2], $PLACE_RIGHT, $w[1], $NO_CARE, $Nullsx);
-     SetWidgetPos($w[3], $PLACE_RIGHT, $w[2], $NO_CARE, $Nullsx);
+     SetWidgetPos($w[1], $Sx::PLACE_RIGHT, $w[0], $Sx::NO_CARE, $Sx::Nullsx);
+     SetWidgetPos($w[2], $Sx::PLACE_RIGHT, $w[1], $Sx::NO_CARE, $Sx::Nullsx);
+     SetWidgetPos($w[3], $Sx::PLACE_RIGHT, $w[2], $Sx::NO_CARE, $Sx::Nullsx);
 
      # next three underneath the top row
-     SetWidgetPos($w[4], $PLACE_UNDER, $w[0], $NO_CARE, $Nullsx);
-     SetWidgetPos($w[5], $PLACE_UNDER, $w[0], $PLACE_RIGHT, $w[4]);
-     SetWidgetPos($w[6], $PLACE_UNDER, $w[0], $PLACE_RIGHT, $w[5]);
+     SetWidgetPos($w[4], $Sx::PLACE_UNDER, $w[0], $Sx::NO_CARE, $Sx::Nullsx);
+     SetWidgetPos($w[5], $Sx::PLACE_UNDER, $w[0], $Sx::PLACE_RIGHT, $w[4]);
+     SetWidgetPos($w[6], $Sx::PLACE_UNDER, $w[0], $Sx::PLACE_RIGHT, $w[5]);
 
      # put the drawing area under the second row
-     SetWidgetPos($w[7], $PLACE_UNDER, $w[4], $NO_CARE, $Nullsx);
+     SetWidgetPos($w[7], $Sx::PLACE_UNDER, $w[4], $Sx::NO_CARE, $Sx::Nullsx);
 
 It is useful to think of the window as a kind of grid in which you can
 put various pieces.  Just draw a picture of what you want and then use
@@ -1881,10 +1881,10 @@ The function is only called once, if you would like the function to be
 called repeatedly (to update an animation for example), the last thing
 the function should do is to call AddTimeOut() again.
 
-The value returned by AddTimeOut() can be used with RemoveAddTimeOut()
+The value returned by AddTimeOut() can be used with RemoveTimeOut()
 to cancel that time-out.
 
-=item C<RemoveAddTimeOut(id)>
+=item C<RemoveTimeOut(id)>
 
 Cancels a time-out callback which was previously registered with
 AddTimeOut().
@@ -1942,7 +1942,7 @@ following:
 
           require  'bmap.ph';
 
-	  $w = MakeButton($Nullsx, func, $a_value);
+	  $w = MakeButton($Sx::Nullsx, 'func', $a_value);
 	  SetWidgetBitmap($w, $bmap_bits,$bmap_width,$bmap_height);
 
 Bits which are a one in the bitmap are drawn in the widget's current
@@ -2030,21 +2030,20 @@ value as returned by AddReadCallback() or AddWriteCallback().
 
 Add (override) a translation table for the specified widget. Each
 translation should associate an event to a perl action. This action
-will take, the widget as its first argument, then the x and y value of
-the mouse relative to the current widget, then the state followed by
-the rest of the specified arguments. Be warned that the arguments will be 
-passed as strings. So if you want to pass perl variables, you should quote 
-them and use eval in the callback.
+will take, the widget as its first argument, then the event as packed
+datas followed by the rest of the specified arguments. Be warned that
+the arguments will be passed as strings. So if you want to pass perl
+variables, you should quote them and use eval in the callback.
 
 For example :
 
     sub pargs {
-      my($w,$x,$y,$state,@a) = @_;
+      my($w,$ev,@a) = @_;
       print "args are [@_]\n";
       SetLabel($w,join('-',@a));
     }
 
-    OpenDisplay('test',@ARGV);
+    @ARGV = OpenDisplay('test',@ARGV);
 
     $w1 = MakeButton('quit','quit',undef);
 
